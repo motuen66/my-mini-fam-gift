@@ -30,6 +30,15 @@ export const RiggedWheel: React.FC<RiggedWheelProps> = ({
     }
   });
   const [needleTick, setNeedleTick] = useState(false);
+  const tickIntervalRef = useRef<number | null>(null);
+  const spinTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (tickIntervalRef.current) window.clearInterval(tickIntervalRef.current);
+      if (spinTimeoutRef.current) window.clearTimeout(spinTimeoutRef.current);
+    };
+  }, []);
 
   // Draw the wheel onto canvas
   useEffect(() => {
@@ -113,20 +122,21 @@ export const RiggedWheel: React.FC<RiggedWheelProps> = ({
 
     // Play periodic tick sounds during rotation
     let tickCount = 0;
-    const tickInterval = setInterval(() => {
+    const tickInterval = window.setInterval(() => {
       sound.playTick();
       setNeedleTick((prev) => !prev);
       tickCount++;
       if (tickCount > 25) {
-        clearInterval(tickInterval);
+        window.clearInterval(tickInterval);
       }
     }, 120);
+    tickIntervalRef.current = tickInterval;
 
     setCurrentRotation(result.targetRotationDegrees);
 
     // After animation ends (approx 3.5 seconds)
-    setTimeout(() => {
-      clearInterval(tickInterval);
+    spinTimeoutRef.current = window.setTimeout(() => {
+      window.clearInterval(tickInterval);
       setIsSpinning(false);
       setSpinCount((prev) => prev + 1);
       setWinningPrize(result.selectedPrize);
@@ -236,7 +246,8 @@ export const RiggedWheel: React.FC<RiggedWheelProps> = ({
             <button
               type="button"
               onClick={() => setWinningPrize(null)}
-              className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-gray-100 text-gray-400 cursor-pointer"
+              aria-label="Đóng"
+              className="absolute top-2 right-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -251,7 +262,7 @@ export const RiggedWheel: React.FC<RiggedWheelProps> = ({
             </div>
 
             <span className="text-xs font-bold uppercase tracking-wider text-rose-500 bg-rose-50 px-3 py-1 rounded-full">
-              {winningPrize.isTroll ? 'Troll Một Chút Thôi 😜' : 'Chúc Mừng Em Tròn! 🎉'}
+              {winningPrize.isTroll ? 'Troll Một Chút Thôi 😜' : `Chúc Mừng ${recipientName}! 🎉`}
             </span>
 
 

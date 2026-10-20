@@ -1,52 +1,57 @@
 /**
- * Comprehensive Audio Engine with Web Audio API synthesizer + MP3 file support.
- * Guarantees zero silence even before the user puts their own MP3 files in public/audio/!
+ * Audio engine:
+ * - Nhạc nền: ưu tiên file thật (mp3/m4a/wav), luôn có nhạc tổng hợp dự phòng.
+ * - Voice note: chỉ 1 bản phát 1 lúc, tự giảm nhạc nền khi nói.
+ * - SFX: tổng hợp bằng Web Audio, không cần file.
  */
+
+import { audioCandidates } from './assets.ts';
+
+interface VoiceSession {
+  audio: HTMLAudioElement;
+  onEnded: () => void;
+  onError: (message: string) => void;
+  settled: boolean;
+}
+
+const FRIENDLY_VOICE_ERROR =
+  'Chưa có bản ghi âm, đang phát lời chúc bằng phụ đề nha 🎧';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private bgmGain: GainNode | null = null;
   private sfxGain: GainNode | null = null;
-  private isMuted: boolean = false;
-  private isBgmPlaying: boolean = false;
+
+  private isMuted = false;
+  private isBgmPlaying = false;
+  private isDucked = false;
+
   private bgmInterval: number | null = null;
-  private currentVoiceAudio: HTMLAudioElement | null = null;
-  private isDucked: boolean = false;
   private bgmAudioElement: HTMLAudioElement | null = null;
+  private bgmAttempt = 0;
+
+  private currentVoice: VoiceSession | null = null;
 
   private initContext() {
     if (!this.ctx) {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
         this.bgmGain = this.ctx.createGain();
         this.sfxGain = this.ctx.createGain();
 
-        this.bgmGain.gain.setValueAtTime(0.35, this.ctx.currentTime);
-        this.sfxGain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+        this.bgmGain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        this.sfxGain.gain.setValueAtTime(0.45, this.ctx.currentTime);
 
         this.bgmGain.connect(this.ctx.destination);
         this.sfxGain.connect(this.ctx.destination);
       }
     }
+
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
-    }
-  }
-
-  public setMuted(muted: boolean) {
-    this.isMuted = muted;
-    if (this.bgmGain && this.ctx) {
-      this.bgmGain.gain.setValueAtTime(muted ? 0 : this.isDucked ? 0.08 : 0.35, this.ctx.currentTime);
-    }
-    if (this.sfxGain && this.ctx) {
-      this.sfxGain.gain.setValueAtTime(muted ? 0 : 0.5, this.ctx.currentTime);
-    }
-    if (this.bgmAudioElement) {
-      this.bgmAudioElement.muted = muted;
-    }
-    if (this.currentVoiceAudio) {
-      this.currentVoiceAudio.muted = muted;
     }
   }
 
@@ -58,32 +63,89 @@ class SoundEngine {
     return this.isBgmPlaying;
   }
 
-  /**
-   * Starts BGM: tries public/audio/bgm.mp3 first. If not found or errors,
-   * falls back to lovely generated procedural music!
-   */
+  public setMuted(muted: boolean) {
+    this.isMuted = muted;
+    this.applyBgmVolume();
+    if (this.sfxGain && this.ctx) {
+      this.sfxGain.gain.setTargetAtTime(muted ? 0 : 0.45, this.ctx.currentTime, 0.05);
+    }
+    if (this.currentVoice) {
+      this.currentVoice.audio.muted = muted;
+    }
+  }
+
+  private bgmTargetVolume(): number {
+    if (this.isMuted) return 0;
+    return this.isDucked ? 0.08 : 0.3;
+  }
+
+  private applyBgmVolume() {
+    if (this.ctx && this.bgmGain) {
+      this.bgmGain.gain.setTargetAtTime(
+        this.bgmTargetVolume(),
+        this.ctx.currentTime,
+        0.12
+      );
+    }
+    if (this.bgmAudioElement) {
+      this.bgmAudioElement.muted = this.isMuted;
+      this.bgmAudioElement.volume = this.isDucked ? 0.1 : 0.4;
+    }
+  }
+
   public startBGM() {
     this.initContext();
     if (this.isBgmPlaying) return;
     this.isBgmPlaying = true;
+    this.bgmAttempt = 0;
 
-    // Check if an external bgm element exists and can play
-    const audio = new Audio('/audio/bgm.mp3');
+    // Luôn có nhạc ngay từ đầu. Nếu có file thật, file sẽ thay thế sau.
+    this.startProceduralBGM();
+    this.tryBgmFile();
+  }
+
+  private tryBgmFile() {
+    const urls = audioCandidates('/audio/bgm.mp3');
+    if (!this.isBgmPlaying || this.bgmAttempt >= urls.length) return;
+
+    const url = urls[this.bgmAttempt++];
+    const audio = new Audio();
+    audio.src = url;
     audio.loop = true;
-    audio.volume = this.isMuted ? 0 : 0.4;
+    audio.preload = 'auto';
+    audio.volume = this.isDucked ? 0.1 : 0.4;
+    audio.muted = this.isMuted;
+
+    let handled = false;
+
+    const next = () => {
+      if (handled) return;
+      handled = true;
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      if (this.isBgmPlaying) this.tryBgmFile();
+    };
+
+    audio.addEventListener('error', next, { once: true });
 
     const playPromise = audio.play();
-    if (playPromise !== undefined) {
+    if (playPromise) {
       playPromise
         .then(() => {
+          if (handled) return;
+          if (!this.isBgmPlaying) {
+            audio.pause();
+            return;
+          }
+          handled = true;
           this.bgmAudioElement = audio;
+          this.fadeOutProcedural();
+          this.applyBgmVolume();
         })
-        .catch(() => {
-          // External mp3 not present or blocked, fallback to Web Audio procedural lofi melody!
-          this.startProceduralBGM();
-        });
+        .catch(next);
     } else {
-      this.startProceduralBGM();
+      next();
     }
   }
 
@@ -94,34 +156,25 @@ class SoundEngine {
       this.bgmAudioElement.currentTime = 0;
       this.bgmAudioElement = null;
     }
-    if (this.bgmInterval) {
-      window.clearInterval(this.bgmInterval);
-      this.bgmInterval = null;
-    }
+    this.stopProceduralBGM();
   }
 
   public toggleBGM(): boolean {
     if (this.isBgmPlaying) {
       this.stopBGM();
       return false;
-    } else {
-      this.startBGM();
-      return true;
     }
+    this.startBGM();
+    return true;
   }
 
-  /**
-   * Synthesized cheerful background chord progression (C - Am - F - G) with warm chime tones.
-   */
+  /** Nhạc tổng hợp dự phòng: vòng hợp âm ấm, nhẹ, lặp lại. */
   private startProceduralBGM() {
     if (!this.ctx || !this.bgmGain) return;
-    if (this.bgmInterval) window.clearInterval(this.bgmInterval);
+    if (this.bgmInterval) return;
 
-    // Warm chords frequencies (Hz):
-    // Cmaj7: C4 (261.6), E4 (329.6), G4 (392.0), B4 (493.8)
-    // Am7:   A3 (220.0), C4 (261.6), E4 (329.6), G4 (392.0)
-    // Fmaj7: F3 (174.6), A3 (220.0), C4 (261.6), E4 (329.6)
-    // G7:    G3 (196.0), B3 (246.9), D4 (293.7), F4 (349.2)
+    this.bgmGain.gain.setTargetAtTime(this.bgmTargetVolume(), this.ctx.currentTime, 0.2);
+
     const chords = [
       [261.63, 329.63, 392.0, 523.25],
       [220.0, 261.63, 329.63, 440.0],
@@ -146,14 +199,14 @@ class SoundEngine {
 
       const now = this.ctx.currentTime;
       noteGain.gain.setValueAtTime(0.001, now);
-      noteGain.gain.exponentialRampToValueAtTime(0.06, now + 0.08);
-      noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+      noteGain.gain.exponentialRampToValueAtTime(0.05, now + 0.08);
+      noteGain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
 
       osc.connect(noteGain);
       noteGain.connect(this.bgmGain);
 
       osc.start(now);
-      osc.stop(now + 0.75);
+      osc.stop(now + 0.8);
 
       step++;
       if (step >= 8) {
@@ -163,11 +216,32 @@ class SoundEngine {
     };
 
     playStep();
-    this.bgmInterval = window.setInterval(playStep, 500);
+    this.bgmInterval = window.setInterval(playStep, 520);
+  }
+
+  private fadeOutProcedural() {
+    if (!this.ctx || !this.bgmGain) return;
+    this.bgmGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.3);
+    if (this.bgmInterval) {
+      window.clearInterval(this.bgmInterval);
+      this.bgmInterval = null;
+    }
+  }
+
+  private stopProceduralBGM() {
+    if (this.bgmInterval) {
+      window.clearInterval(this.bgmInterval);
+      this.bgmInterval = null;
+    }
+  }
+
+  private duckBgm(duck: boolean) {
+    this.isDucked = duck;
+    this.applyBgmVolume();
   }
 
   /**
-   * Handles voice notes with Ducking (auto-lowers BGM during speech).
+   * Phát voice note. Tự dừng bản trước và báo cho component cũ reset UI.
    */
   public playVoiceNote(
     audioUrl: string,
@@ -175,59 +249,86 @@ class SoundEngine {
     onError: (message: string) => void
   ): { stop: () => void } {
     this.initContext();
-
-    // Stop existing voice if any
-    if (this.currentVoiceAudio) {
-      this.currentVoiceAudio.pause();
-      this.currentVoiceAudio = null;
-    }
-
+    this.stopCurrentVoice(true);
     this.duckBgm(true);
 
-    const audio = new Audio(audioUrl);
+    const audio = new Audio();
+    audio.setAttribute('playsinline', 'true');
+    audio.preload = 'auto';
     audio.muted = this.isMuted;
-    this.currentVoiceAudio = audio;
 
-    const handleEnd = () => {
-      this.duckBgm(false);
-      this.currentVoiceAudio = null;
-      onEnded();
+    const session: VoiceSession = {
+      audio,
+      onEnded,
+      onError,
+      settled: false,
+    };
+    this.currentVoice = session;
+
+    const finish = (ended: boolean) => {
+      if (session.settled) return;
+      session.settled = true;
+
+      if (this.currentVoice === session) {
+        this.currentVoice = null;
+        this.duckBgm(false);
+      }
+
+      if (ended) onEnded();
     };
 
-    audio.onended = handleEnd;
-    audio.onerror = () => {
-      this.duckBgm(false);
-      this.currentVoiceAudio = null;
-      onError('Chưa có file ghi âm thực tế tại ' + audioUrl + '. Bạn có thể đặt file vào thư mục public/audio/ nhé!');
+    const urls = audioCandidates(audioUrl);
+    let index = 0;
+
+    const tryNext = () => {
+      if (session.settled) return;
+      if (index >= urls.length) {
+        finish(false);
+        onError(FRIENDLY_VOICE_ERROR);
+        return;
+      }
+
+      audio.src = urls[index++];
+      const playPromise = audio.play();
+      if (playPromise) {
+        playPromise.catch(() => {
+          if (!session.settled) tryNext();
+        });
+      } else {
+        tryNext();
+      }
     };
 
-    audio.play().catch(() => {
-      this.duckBgm(false);
-      this.currentVoiceAudio = null;
-      onError('Chưa có file ghi âm thực tế tại ' + audioUrl + '. Bạn có thể đặt file vào thư mục public/audio/ nhé!');
-    });
+    audio.addEventListener('ended', () => finish(true), { once: true });
+
+    tryNext();
 
     return {
       stop: () => {
-        audio.pause();
-        handleEnd();
+        if (this.currentVoice === session) {
+          this.stopCurrentVoice(true);
+        } else {
+          audio.pause();
+        }
       },
     };
   }
 
-  private duckBgm(duck: boolean) {
-    this.isDucked = duck;
-    if (this.ctx && this.bgmGain) {
-      const targetGain = this.isMuted ? 0 : duck ? 0.08 : 0.35;
-      this.bgmGain.gain.setValueAtTime(this.bgmGain.gain.value, this.ctx.currentTime);
-      this.bgmGain.gain.linearRampToValueAtTime(targetGain, this.ctx.currentTime + 0.5);
-    }
-    if (this.bgmAudioElement) {
-      this.bgmAudioElement.volume = this.isMuted ? 0 : duck ? 0.1 : 0.4;
-    }
+  private stopCurrentVoice(notify: boolean) {
+    const session = this.currentVoice;
+    if (!session) return;
+
+    this.currentVoice = null;
+    session.settled = true;
+    session.audio.pause();
+    session.audio.currentTime = 0;
+
+    this.duckBgm(false);
+
+    if (notify) session.onEnded();
   }
 
-  // --- Sound Effects ---
+  // -------------------- SFX --------------------
 
   public playPop() {
     if (this.isMuted) return;
@@ -242,7 +343,7 @@ class SoundEngine {
     osc.frequency.setValueAtTime(320, now);
     osc.frequency.exponentialRampToValueAtTime(680, now + 0.08);
 
-    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.setValueAtTime(0.16, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
     osc.connect(gain);
@@ -265,7 +366,7 @@ class SoundEngine {
     osc.frequency.setValueAtTime(450, now);
     osc.frequency.exponentialRampToValueAtTime(820, now + 0.07);
 
-    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.setValueAtTime(0.14, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
 
     osc.connect(gain);
@@ -287,7 +388,7 @@ class SoundEngine {
     osc.type = 'square';
     osc.frequency.setValueAtTime(800, now);
 
-    gain.gain.setValueAtTime(0.05, now);
+    gain.gain.setValueAtTime(0.045, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
 
     osc.connect(gain);
@@ -302,7 +403,7 @@ class SoundEngine {
     this.initContext();
     if (!this.ctx || !this.sfxGain) return;
 
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    const notes = [523.25, 659.25, 783.99, 1046.5];
     const now = this.ctx.currentTime;
 
     notes.forEach((freq, idx) => {
@@ -314,7 +415,7 @@ class SoundEngine {
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(freq, start);
 
-      gain.gain.setValueAtTime(0.15, start);
+      gain.gain.setValueAtTime(0.13, start);
       gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
 
       osc.connect(gain);
@@ -338,7 +439,7 @@ class SoundEngine {
     osc.frequency.setValueAtTime(880, now);
     osc.frequency.exponentialRampToValueAtTime(1320, now + 0.25);
 
-    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.setValueAtTime(0.13, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
 
     osc.connect(gain);
@@ -361,7 +462,7 @@ class SoundEngine {
     osc.frequency.setValueAtTime(600, now);
     osc.frequency.linearRampToValueAtTime(250, now + 0.12);
 
-    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.setValueAtTime(0.07, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
     osc.connect(gain);
@@ -376,7 +477,6 @@ class SoundEngine {
     this.initContext();
     if (!this.ctx || !this.sfxGain) return;
 
-    // Soft breath noise simulation
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -385,7 +485,7 @@ class SoundEngine {
     osc.frequency.setValueAtTime(200, now);
     osc.frequency.linearRampToValueAtTime(80, now + 0.35);
 
-    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.setValueAtTime(0.1, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
     osc.connect(gain);
@@ -400,7 +500,6 @@ class SoundEngine {
     this.initContext();
     if (!this.ctx || !this.sfxGain) return;
 
-    // Playful cartoon spring "boing" / wobble
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -411,7 +510,7 @@ class SoundEngine {
     osc.frequency.exponentialRampToValueAtTime(380, now + 0.22);
     osc.frequency.exponentialRampToValueAtTime(520, now + 0.32);
 
-    gain.gain.setValueAtTime(0.16, now);
+    gain.gain.setValueAtTime(0.14, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
     osc.connect(gain);
@@ -421,6 +520,5 @@ class SoundEngine {
     osc.stop(now + 0.36);
   }
 }
-
 
 export const sound = new SoundEngine();

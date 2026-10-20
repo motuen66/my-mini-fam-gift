@@ -20,7 +20,9 @@ export const FloatingParticles: React.FC<FloatingParticlesProps> = ({ darkMode =
       ? ['✨', '⭐', '💫', '💛', '🌟', '🕯️']
       : ['🌸', '✨', '💖', '🌼', '🌷', '⭐', '🎈'];
 
-    return Array.from({ length: 20 }, (_, i) => ({
+    const count = typeof window !== 'undefined' && window.innerWidth < 640 ? 10 : 18;
+
+    return Array.from({ length: count }, (_, i) => ({
       id: i,
       emoji: emojis[i % emojis.length],
       left: Math.random() * 100,

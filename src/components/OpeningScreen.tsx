@@ -33,7 +33,7 @@ export const OpeningScreen: React.FC<OpeningScreenProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 via-rose-50 to-amber-100 px-4 text-center select-none overflow-hidden">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-pink-100 via-rose-50 to-amber-100 px-4 py-8 safe-pt text-center select-none overflow-hidden">
       {/* Decorative background blurs */}
       <div className="absolute -top-20 -left-20 w-72 h-72 bg-pink-300/30 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-amber-200/40 rounded-full blur-3xl pointer-events-none" />
@@ -57,9 +57,9 @@ export const OpeningScreen: React.FC<OpeningScreenProps> = ({
         </div>
 
         {/* Title & subtitle */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 leading-snug mb-3">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 leading-snug mb-3 text-balance">
           Món Quà Bất Ngờ Từ{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-500">
+          <span className="whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-rose-500">
             {gifter}
           </span>
         </h1>
@@ -79,14 +79,14 @@ export const OpeningScreen: React.FC<OpeningScreenProps> = ({
         <button
           onClick={handleStart}
           type="button"
-          className="group relative inline-flex items-center justify-center gap-2.5 px-8 py-4 w-full sm:w-auto rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white font-bold text-lg shadow-xl shadow-pink-500/30 hover:shadow-pink-500/50 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer"
+          className="group relative inline-flex items-center justify-center gap-2.5 px-8 py-4 min-h-[52px] w-full sm:w-auto rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 text-white font-bold text-lg shadow-xl shadow-pink-500/30 hover:shadow-pink-500/50 hover:scale-[1.02] active:scale-95 transition-all duration-200 cursor-pointer touch-manipulation"
         >
           <span>Chạm để bắt đầu</span>
           <span className="text-2xl group-hover:scale-125 transition-transform">🎁</span>
         </button>
 
-        <p className="mt-4 text-xs text-gray-400 italic">
-          Bật loa điện thoại để nghe nhạc và âm thanh vui nhộn nha!
+        <p className="mt-4 text-xs text-gray-500 leading-relaxed">
+          🔊 Bật âm lượng và tắt công tắc im lặng trên iPhone để nghe nhạc nha.
         </p>
       </div>
     </div>

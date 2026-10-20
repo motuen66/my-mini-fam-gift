@@ -5,6 +5,9 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    // Dùng đường dẫn tương đối để deploy được ở root (Netlify)
+    // hoặc thư mục con (GitHub Pages).
+    base: './',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

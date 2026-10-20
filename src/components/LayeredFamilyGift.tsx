@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { GiftLayer } from '../types/index.ts';
+import { FAMILY_CLOSING } from '../content/config.ts';
 import { sound } from '../utils/audio.ts';
-import { calculateGiftLayerProgress } from '../utils/logic.ts';
 import { Gift, Sparkles, Award, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { InteractiveSticker } from './InteractiveSticker.tsx';
 
@@ -22,11 +22,13 @@ export const LayeredFamilyGift: React.FC<LayeredFamilyGiftProps> = ({
   darkMode = true,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isRevealed, setIsRevealed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const totalLayers = layers.length;
 
   const currentLayer = layers.find((l) => l.step === currentStep) || layers[layers.length - 1];
-  const { isCompleted, remaining } = calculateGiftLayerProgress(currentStep, totalLayers);
+  const isCompleted = isRevealed;
+  const remaining = isRevealed ? 0 : totalLayers - currentStep + 1;
 
   const handleUnwrapNext = () => {
     sound.playPop();
@@ -42,6 +44,7 @@ export const LayeredFamilyGift: React.FC<LayeredFamilyGiftProps> = ({
       });
     } else {
       sound.playFanfare();
+      setIsRevealed(true);
       confetti({
         particleCount: 100,
         spread: 90,
@@ -54,6 +57,7 @@ export const LayeredFamilyGift: React.FC<LayeredFamilyGiftProps> = ({
   const handleReset = () => {
     sound.playPop();
     setCurrentStep(1);
+    setIsRevealed(false);
   };
 
   return (
@@ -84,7 +88,7 @@ export const LayeredFamilyGift: React.FC<LayeredFamilyGiftProps> = ({
               <span
                 key={l.step}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  l.step < currentStep
+                  isRevealed || l.step < currentStep
                     ? 'bg-emerald-400 scale-105'
                     : l.step === currentStep
                     ? 'bg-amber-400 scale-125 ring-2 ring-amber-300'
@@ -146,37 +150,38 @@ export const LayeredFamilyGift: React.FC<LayeredFamilyGiftProps> = ({
                 <h3 className="text-lg sm:text-xl font-bold mb-1">
                   CHỨNG NHẬN GIA ĐÌNH 3 NGƯỜI VÔ ĐỊCH
                 </h3>
+                <p className="text-[11px] sm:text-xs text-amber-200/90 italic mb-2 px-2">
+                  &ldquo;Đỉnh luôn gia đình mình! Ba khao trà sữa nha!&rdquo;
+                </p>
 
                 {/* Page 2 Feature: Tròn + Hoành con celebrating together */}
-                <div className="flex items-center justify-center gap-6 my-2">
+                <div className="flex items-center justify-center gap-8 my-2">
                   <InteractiveSticker
                     character="me"
                     expression="dinh-luon"
                     size="sm"
                     tilt={-6}
-                    speechBubble="Đỉnh luôn gia đình mình! ⭐"
                   />
                   <InteractiveSticker
                     character="con"
                     expression="tra-sua"
                     size="sm"
                     tilt={6}
-                    speechBubble="Ba khao trà sữa nha! 🧋"
                   />
                 </div>
 
                 <div className="bg-slate-800/90 border border-amber-400/40 rounded-2xl p-4 my-3 text-xs text-slate-200 leading-relaxed max-w-md shadow-inner text-left space-y-2">
                   <p>
-                    🎖️ <strong>Mẹ ({recipientName}):</strong> Xinh đẹp, đảm đang, quyền lực tối cao, luôn được yêu thương chiều chuộng nhất nhà!
+                    🎖️ <strong>Mẹ ({recipientName}):</strong> Xinh đẹp, đảm đang, quyền lực nhất nhà.
                   </p>
                   <p>
-                    🎖️ <strong>Con ({thirdPersonName}):</strong> &quot;Con nuôi&quot; đáng yêu, bạn thân kim cương, bảo hiểm hòa giải mọi trận drama!
+                    🎖️ <strong>Con ({thirdPersonName}):</strong> Con gái nuôi đáng yêu, chuyên gia hòa giải.
                   </p>
                   <p>
-                    🎖️ <strong>Ba ({gifterName}):</strong> Tài xế kiêm bảo vệ, cam kết luôn yêu thương mẹ và chăm lo cho cả nhà!
+                    🎖️ <strong>Ba ({gifterName}):</strong> Tài xế kiêm bảo vệ, lo quà và lo rửa chén.
                   </p>
                   <p className="pt-2 font-bold text-amber-300 text-center border-t border-slate-700">
-                    🎫 Tặng Voucher: 1 Buổi Ăn Uống Thả Ga 3 Người (A Mỏ Quẹt Thẻ)!
+                    🎫 {FAMILY_CLOSING.voucher}
                   </p>
                 </div>
 

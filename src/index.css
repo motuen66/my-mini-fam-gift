@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Quicksand", system-ui, -apple-system, sans-serif;
-  --font-hand: "Patrick Hand", cursive;
-  --font-display: "Comfortaa", cursive;
+  --font-sans: "Quicksand", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-hand: "Patrick Hand", "Comic Sans MS", cursive;
+  --font-display: "Comfortaa", "Quicksand", system-ui, cursive;
 
   --color-warm-pink: #ff85a2;
   --color-soft-pink: #fce7f3;
@@ -13,7 +13,13 @@
 }
 
 @layer base {
-  html, body {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  html,
+  body {
     margin: 0;
     padding: 0;
     font-family: var(--font-sans);
@@ -21,6 +27,19 @@
     color: #4a3e3d;
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  button {
+    touch-action: manipulation;
   }
 }
 
@@ -54,4 +73,77 @@
 /* Safe area insets for mobile */
 .safe-pb {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.safe-pt {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* Animations dùng chung */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out both;
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-scale-up {
+  animation: scaleUp 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes spinSlow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spinSlow 8s linear infinite;
+}
+
+/* Dùng CSS variable để mỗi sticker giữ đúng độ nghiêng riêng. */
+@keyframes gentleFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
+  50% {
+    transform: translateY(-6px) rotate(calc(var(--tilt, 0deg) + 2deg));
+  }
+}
+.animate-gentle-float {
+  animation: gentleFloat 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-fade-in,
+  .animate-scale-up,
+  .animate-spin-slow,
+  .animate-gentle-float,
+  .animate-float-down,
+  .animate-firefly,
+  .animate-flame-flicker,
+  .animate-bounce,
+  .animate-ping {
+    animation: none !important;
+  }
 }

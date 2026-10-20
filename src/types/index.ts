@@ -1,11 +1,38 @@
+export type CharacterType = 'ba' | 'me' | 'con';
+
+export type ExpressionType =
+  | 'ok-luon'
+  | 'hi-hi-hi'
+  | 'dinh-luon'
+  | 'kho-chiu'
+  | 'oi-troi-oi'
+  | 'hehe'
+  | 'vo-duyen'
+  | 'muon-chat'
+  | 'um'
+  | 'buon-ngu'
+  | 'di-thoi'
+  | 'tra-sua'
+  | 'yeahhh'
+  | 'binh-thuong'
+  | 'kinh-ram'
+  | 'om-tho'
+  | 'cuoi'
+  | 'quau'
+  | 'doian'
+  | 'chumom'
+  | 'hahe'
+  | 'tha-tim'
+  | 'ngaongoc';
+
 export interface AppConfig {
   names: {
-    gifter: string; // "A mỏ"
-    recipient: string; // "em tròn"
-    thirdPerson: string; // "Hoành con"
+    gifter: string;
+    recipient: string;
+    thirdPerson: string;
   };
-  eventTitle: string; // "Chúc Mừng Ngày Phụ Nữ Việt Nam 20/10"
-  tagline: string; // "Món quà tương tác tràn ngập yêu thương và tiếng cười"
+  eventTitle: string;
+  tagline: string;
   voiceNoteBoyfriend: {
     audioUrl: string;
     durationEstimate: string;
@@ -16,19 +43,6 @@ export interface AppConfig {
     durationEstimate: string;
     transcript: string[];
   };
-}
-
-export interface StoryChapter {
-  id: number;
-  chapterNumber: string;
-  title: string;
-  subtitle: string;
-  content: string[];
-  emotion: string;
-  accentColor: string;
-  bgGradient: string;
-  iconName: string;
-  customNote?: string;
 }
 
 export interface WheelPrize {
@@ -51,7 +65,7 @@ export interface LoveReason {
 
 export interface CandleData {
   id: string;
-  role: 'ba' | 'me' | 'con';
+  role: CharacterType;
   name: string;
   label: string;
   colorName: 'yellow' | 'blue' | 'pink';
@@ -73,9 +87,9 @@ export interface PhotoMoment {
   id: number;
   imageSrc?: string;
   altText: string;
-  caption: string; // < 10 words, humorous label/bubble
-  stickerCharacter: 'ba' | 'me' | 'con';
-  stickerExpression: 'cuoi' | 'quau' | 'doian' | 'chumom' | 'hahe' | 'tha-tim';
+  caption: string;
+  stickerCharacter: CharacterType;
+  stickerExpression: ExpressionType;
   speechBubble: string;
   tapeColor: string;
   tiltAngle: number;
@@ -84,11 +98,16 @@ export interface PhotoMoment {
 
 export interface StickerDefinition {
   id: string;
-  character: 'ba' | 'me' | 'con';
-  expression: string;
+  character: CharacterType;
+  expression: ExpressionType;
   fileName: string;
   label: string;
   voiceLine: string;
   badgeColor: string;
 }
 
+export interface LoveLetterContent {
+  title: string;
+  paragraphs: string[];
+  signature: string;
+}

@@ -22,7 +22,8 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
   const [dialogue, setDialogue] = useState<string>('Bấm nút bên dưới để mở quà 20/10 nha!');
   const [isOpened, setIsOpened] = useState(false);
   const [isLidFlying, setIsLidFlying] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonAreaRef = useRef<HTMLDivElement>(null);
+  const lastEvadeAtRef = useRef(0);
 
   const handleEvade = (e: React.MouseEvent | React.TouchEvent) => {
     if (isOpened) return;
@@ -32,11 +33,14 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
     }
 
     e.preventDefault();
+    // Chặn luôn cú click/tap vừa sinh ra từ lần né này, tránh mở quà oan.
+    lastEvadeAtRef.current = Date.now();
     sound.playEvade();
 
-    const rect = containerRef.current?.getBoundingClientRect();
-    const width = rect?.width || 340;
-    const height = 180;
+    // Chỉ né trong vùng chứa nút, để nút không bị cắt mất.
+    const rect = buttonAreaRef.current?.getBoundingClientRect();
+    const width = rect?.width || 240;
+    const height = rect?.height || 80;
 
     const nextPos = getNextEscapePosition(attempts, width, height, 130, 48);
     setAttempts((prev) => prev + 1);
@@ -46,10 +50,12 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
 
   const handleOpenGift = () => {
     if (isOpened) return;
+    if (Date.now() - lastEvadeAtRef.current < 500) return;
 
     sound.playPop();
     sound.playFanfare();
     setIsLidFlying(true);
+    setDialogue('Mở quà thành công rồi nè! Chúc em 20/10 thật vui nha! 🎉');
 
     // Blast celebratory confetti
     confetti({
@@ -66,9 +72,9 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
   };
 
   const scrollToNext = () => {
-    const nextElem = document.getElementById('story-journey-section');
+    const nextElem = document.getElementById('photo-story-section');
     if (nextElem) {
-      nextElem.scrollIntoView({ behavior: 'smooth' });
+      nextElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -92,8 +98,7 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
 
       {/* Interactive Gift Container */}
       <div
-        ref={containerRef}
-        className="relative w-72 sm:w-80 h-72 bg-gradient-to-b from-rose-50 to-pink-100/80 rounded-3xl border-2 border-dashed border-rose-200 p-6 flex flex-col items-center justify-center shadow-inner overflow-hidden select-none"
+        className="relative w-72 sm:w-80 h-80 bg-gradient-to-b from-rose-50 to-pink-100/80 rounded-3xl border-2 border-dashed border-rose-200 p-6 flex flex-col items-center justify-center shadow-inner overflow-hidden select-none"
       >
         {!isOpened ? (
           <div className="flex flex-col items-center">
@@ -118,17 +123,19 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
             </div>
 
             {/* Runaway Button Container */}
-            <div className="relative w-full h-16 flex items-center justify-center">
+            <div ref={buttonAreaRef} className="relative w-full h-20 flex items-center justify-center">
               <button
                 type="button"
-                onMouseEnter={handleEvade}
+                onPointerEnter={(e) => {
+                  if (e.pointerType === 'mouse') handleEvade(e);
+                }}
                 onTouchStart={handleEvade}
                 onClick={handleOpenGift}
                 style={{
                   transform: `translate(${btnOffset.x}px, ${btnOffset.y}px)`,
                   transition: attempts < MAX_ESCAPE_ATTEMPTS - 1 ? 'transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'transform 0.3s ease',
                 }}
-                className={`px-6 py-2.5 rounded-2xl font-bold text-white shadow-lg cursor-pointer text-sm sm:text-base flex items-center gap-2 ${
+                className={`min-h-[48px] px-6 py-2.5 rounded-2xl font-bold text-white shadow-lg cursor-pointer touch-manipulation text-sm sm:text-base flex items-center gap-2 ${
                   attempts >= MAX_ESCAPE_ATTEMPTS - 1
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:scale-105 animate-pulse shadow-emerald-400/40'
                     : 'bg-gradient-to-r from-pink-500 to-rose-500 hover:shadow-pink-500/50'
@@ -146,7 +153,7 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
         ) : (
           /* Opened Gift State */
           <div className="flex flex-col items-center justify-center animate-scale-up text-center p-2">
-            <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="flex items-center justify-center gap-10 mb-2">
               <InteractiveSticker
                 character="me"
                 expression="ok-luon"

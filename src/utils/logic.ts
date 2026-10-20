@@ -5,7 +5,7 @@ export const ESCAPE_DIALOGUES = [
   'Né đòn cấp độ Thách Đấu! Bắt được anh đi!',
   'Chưa mở được đâu nè lé le 😜',
   'Ui da suýt bấm trúng! Nhanh tay hơn nữa xem nào!',
-  'Thôi thương em tròn lắm rồi, đứng yên nè, mở đi nha! 🎁',
+  'Thôi thương em lắm rồi, đứng yên nè, mở đi nha! 🎁',
 ];
 
 export const MAX_ESCAPE_ATTEMPTS = 5;

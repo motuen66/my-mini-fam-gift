@@ -1,12 +1,25 @@
-# Thư mục ảnh Photo Story (Dải ảnh kỷ niệm cuộn dọc)
+# Ảnh Photo Story
 
-Bạn chỉ cần bỏ các ảnh chụp thật của 2 người / gia đình vào đây để hiển thị lên Photo Story:
+Bỏ 6 ảnh kỷ niệm vào thư mục này để thay khung minh hoạ mặc định.
 
-- `moment-1.jpg` (hoặc `.png`) - Khoảnh khắc lần đầu gặp nhau / đi ăn
-- `moment-2.jpg` (hoặc `.png`) - Lúc em tròn đang say sưa ăn ngon lành
-- `moment-3.jpg` (hoặc `.png`) - Pha lạc đường / ngố tàu hài hước
-- `moment-4.jpg` (hoặc `.png`) - Ảnh chụp chung cùng Hoành con siêu lầy
-- `moment-5.jpg` (hoặc `.png`) - Cái nắm tay / nụ cười ấm áp
-- `moment-6.jpg` (hoặc `.png`) - Ảnh chân thành ngọt ngào nhất của 2 người
+## Tên file
 
-*Nếu chưa có ảnh thật, hệ thống sẽ tự động dùng khung polaroid pastel nghệ thuật dán băng keo trang trí tuyệt đẹp!*
+- `moment-1.jpg`
+- `moment-2.jpg`
+- `moment-3.jpg`
+- `moment-4.jpg`
+- `moment-5.jpg`
+- `moment-6.jpg`
+
+Web tự thử thêm `.png` và `.webp`, nên bạn có thể dùng định dạng nào cũng được, miễn giữ đúng tên `moment-1`, `moment-2`...
+
+## Gợi ý
+
+- Kích thước: 1200–1600 px cạnh dài.
+- Tỉ lệ đẹp nhất: 4:3 hoặc 16:10 (ngang).
+- Dung lượng: nên nén dưới 500 KB/ảnh để mở nhanh trên điện thoại.
+- Ảnh sẽ được crop vừa khung `object-cover`, nên đừng đặt mặt sát mép.
+
+## Nếu chưa có ảnh
+
+Trang tự hiển thị khung polaroid pastel + sticker chibi + số thứ tự. Không bị lỗi ảnh.

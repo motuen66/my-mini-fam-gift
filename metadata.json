@@ -1,10 +1,4 @@
 {
-  "name": "Remix Quà 20/10 - A Mỏ gửi Em Tròn \u0026 Gia Đình Nhỏ",
-  "description": "Trang quà tặng 20/10 tương tác vui nhộn, sống động và ấm áp từ A mỏ gửi em tròn và gia đình 3 người cùng Hoành con.",
-  "requestFramePermissions": [
-    "microphone"
-  ],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "name": "Quà 20/10 • a Mỏ gửi em Tròn & Gia đình nhỏ",
+  "description": "Trang quà tặng 20/10 tương tác vui nhộn, ấm áp từ a Mỏ gửi em Tròn và gia đình nhỏ 3 người."
 }

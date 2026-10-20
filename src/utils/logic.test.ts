@@ -25,7 +25,7 @@ test('runaway gift button evades for first attempts and gives in on final attemp
   assert.equal(finalRes.isTired, true);
   assert.equal(finalRes.x, 0);
   assert.equal(finalRes.y, 0);
-  assert.ok(finalRes.dialogue.includes('thương em tròn'));
+  assert.ok(finalRes.dialogue.includes('thương em'));
 });
 
 test('rigged wheel calculation rotates accurately to selected slice and adds full rotations', () => {

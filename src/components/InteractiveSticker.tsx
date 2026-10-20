@@ -1,31 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import type { CharacterType, ExpressionType } from '../types/index.ts';
+import { DEFAULT_CONFIG, STICKERS_CONFIG } from '../content/config.ts';
+import { assetUrl } from '../utils/assets.ts';
 import { sound } from '../utils/audio.ts';
-
-export type CharacterType = 'ba' | 'me' | 'con';
-export type ExpressionType =
-  | 'ok-luon'
-  | 'hi-hi-hi'
-  | 'dinh-luon'
-  | 'kho-chiu'
-  | 'oi-troi-oi'
-  | 'hehe'
-  | 'vo-duyen'
-  | 'muon-chat'
-  | 'um'
-  | 'buon-ngu'
-  | 'di-thoi'
-  | 'tra-sua'
-  | 'yeahhh'
-  | 'binh-thuong'
-  | 'kinh-ram'
-  | 'om-tho'
-  | 'cuoi'
-  | 'quau'
-  | 'doian'
-  | 'chumom'
-  | 'hahe'
-  | 'tha-tim'
-  | 'ngaongoc';
 
 interface InteractiveStickerProps {
   character: CharacterType;
@@ -65,46 +42,86 @@ export const InteractiveSticker: React.FC<InteractiveStickerProps> = ({
     xl: 'w-36 h-36 sm:w-44 sm:h-44',
   }[size];
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const react = () => {
     sound.playBoing();
     setIsBouncing(true);
     setShowQuickReaction(true);
 
     if (onClick) onClick();
 
-    setTimeout(() => setIsBouncing(false), 500);
-    setTimeout(() => setShowQuickReaction(false), 1500);
+    window.setTimeout(() => setIsBouncing(false), 500);
+    window.setTimeout(() => setShowQuickReaction(false), 1500);
   };
 
-  // Multiple filename candidates: tron_*.png / hinh2.png for Tròn (Hình 2), hoanh_*.png / hinh1.png for Hoành con (Hình 1)
-  const candidateFileNames = customImageSrc
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    react();
+  };
+
+  const stickerDefinition = STICKERS_CONFIG.find(
+    (item) => item.character === character && item.expression === expression
+  );
+
+  // Ưu tiên file trong config; thử cả .webp và .png để người dùng
+  // có thể thay sticker bằng PNG cùng tên mà không phải sửa code.
+  const configuredNames = stickerDefinition
+    ? [
+        stickerDefinition.fileName,
+        stickerDefinition.fileName.replace(/\.webp$/i, '.png'),
+        stickerDefinition.fileName.replace(/\.png$/i, '.webp'),
+      ]
+    : [];
+
+  const conventionNames =
+    character === 'me'
+      ? [
+          `/assets/stickers/tron_${expression}.webp`,
+          `/assets/stickers/tron_${expression}.png`,
+          `/assets/stickers/hinh2.webp`,
+          `/assets/stickers/hinh2.png`,
+          `/assets/stickers/tron.webp`,
+          `/assets/stickers/tron.png`,
+          `/assets/stickers/me_${expression}.webp`,
+          `/assets/stickers/me_${expression}.png`,
+          `/assets/stickers/me.webp`,
+          `/assets/stickers/me.png`,
+        ]
+      : character === 'con'
+      ? [
+          `/assets/stickers/hoanh_${expression}.webp`,
+          `/assets/stickers/hoanh_${expression}.png`,
+          `/assets/stickers/hinh1.webp`,
+          `/assets/stickers/hinh1.png`,
+          `/assets/stickers/hoanh.webp`,
+          `/assets/stickers/hoanh.png`,
+          `/assets/stickers/con_${expression}.webp`,
+          `/assets/stickers/con_${expression}.png`,
+          `/assets/stickers/con.webp`,
+          `/assets/stickers/con.png`,
+        ]
+      : [
+          `/assets/stickers/ba_${expression}.webp`,
+          `/assets/stickers/ba_${expression}.png`,
+          `/assets/stickers/ba.webp`,
+          `/assets/stickers/ba.png`,
+        ];
+
+  const rawNames = customImageSrc
     ? [customImageSrc]
-    : character === 'me'
-    ? [
-        `/assets/stickers/tron_${expression}.png`,
-        `/assets/stickers/hinh2.png`,
-        `/assets/stickers/hinh_2.png`,
-        `/assets/stickers/tron.png`,
-        `/assets/stickers/me_${expression}.png`,
-        `/assets/stickers/me.png`,
-      ]
-    : character === 'con'
-    ? [
-        `/assets/stickers/hoanh_${expression}.png`,
-        `/assets/stickers/hinh1.png`,
-        `/assets/stickers/hinh_1.png`,
-        `/assets/stickers/hoanh.png`,
-        `/assets/stickers/con_${expression}.png`,
-        `/assets/stickers/con.png`,
-      ]
     : [
-        `/assets/stickers/ba_${expression}.png`,
-        `/assets/stickers/ba.png`,
+        ...configuredNames.map((name) => `/assets/stickers/${name}`),
+        ...conventionNames,
       ];
+
+  const candidateFileNames = Array.from(new Set(rawNames)).map(assetUrl);
 
   const [candidateIdx, setCandidateIdx] = useState(0);
   const resolvedFileName = candidateFileNames[candidateIdx] || '';
+
+  useEffect(() => {
+    setCandidateIdx(0);
+    setImgError(false);
+  }, [character, expression, customImageSrc]);
 
   // Character quotes based directly on the user's uploaded stickers
   const tronQuotes: Record<string, string> = {
@@ -142,6 +159,7 @@ export const InteractiveSticker: React.FC<InteractiveStickerProps> = ({
   };
 
   const getReactionText = (): string => {
+    if (stickerDefinition?.voiceLine) return stickerDefinition.voiceLine;
     if (character === 'me') {
       return tronQuotes[expression] || tronQuotes['cuoi'];
     }
@@ -157,21 +175,21 @@ export const InteractiveSticker: React.FC<InteractiveStickerProps> = ({
       bg: 'bg-amber-100',
       border: 'border-amber-300',
       badge: 'bg-amber-500 text-white',
-      name: 'A mỏ (Ba)',
+      name: `${DEFAULT_CONFIG.names.gifter} (Ba)`,
       shadow: 'rgba(245, 158, 11, 0.4)',
     },
     me: {
       bg: 'bg-rose-100',
       border: 'border-rose-300',
       badge: 'bg-rose-500 text-white',
-      name: 'Em tròn',
+      name: DEFAULT_CONFIG.names.recipient,
       shadow: 'rgba(244, 63, 94, 0.4)',
     },
     con: {
       bg: 'bg-sky-100',
       border: 'border-sky-300',
       badge: 'bg-sky-500 text-white',
-      name: 'Hoành con',
+      name: DEFAULT_CONFIG.names.thirdPerson,
       shadow: 'rgba(56, 189, 248, 0.4)',
     },
   }[character];
@@ -179,17 +197,30 @@ export const InteractiveSticker: React.FC<InteractiveStickerProps> = ({
   return (
     <div
       onClick={handleClick}
-      style={{
-        transform: `rotate(${tilt}deg) ${isBouncing ? 'scale(1.25) rotate(-6deg)' : 'scale(1)'}`,
-        opacity: Math.max(0.12, ambientLight),
-        filter:
-          ambientLight < 0.8
-            ? `brightness(${0.2 + ambientLight * 0.8}) contrast(${0.8 + ambientLight * 0.2})`
-            : 'none',
-        transition:
-          'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.8s ease, filter 0.8s ease',
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation();
+          react();
+        }
       }}
-      className={`relative inline-flex flex-col items-center cursor-pointer select-none group touch-manipulation ${
+      role="button"
+      tabIndex={0}
+      aria-label={label || `Chạm vào ${theme.name}`}
+      style={
+        {
+          '--tilt': `${tilt}deg`,
+          transform: `rotate(${tilt}deg) ${isBouncing ? 'scale(1.25) rotate(-6deg)' : 'scale(1)'}`,
+          opacity: Math.max(0.2, ambientLight),
+          filter:
+            ambientLight < 0.8
+              ? `brightness(${0.2 + ambientLight * 0.8}) contrast(${0.8 + ambientLight * 0.2})`
+              : 'none',
+          transition:
+            'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.8s ease, filter 0.8s ease',
+        } as React.CSSProperties
+      }
+      className={`relative inline-flex flex-col items-center cursor-pointer select-none group touch-manipulation outline-none focus-visible:ring-2 focus-visible:ring-rose-400 rounded-2xl ${
         floatAnimation ? 'animate-gentle-float' : ''
       } ${className}`}
       title={`Chạm vào ${label || theme.name}!`}
@@ -413,15 +444,6 @@ export const InteractiveSticker: React.FC<InteractiveStickerProps> = ({
         </span>
       )}
 
-      <style>{`
-        @keyframes gentleFloat {
-          0%, 100% { transform: translateY(0px) rotate(${tilt}deg); }
-          50% { transform: translateY(-6px) rotate(${tilt + 2}deg); }
-        }
-        .animate-gentle-float {
-          animation: gentleFloat 3s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sound } from '../utils/audio.ts';
-import { Headphones, Square, Play, Volume2, Sparkles, AlertCircle } from 'lucide-react';
+import { Headphones, Square, Play, Volume2, AlertCircle } from 'lucide-react';
 
 interface VoiceNotePlayerProps {
   title: string;
@@ -9,6 +9,7 @@ interface VoiceNotePlayerProps {
   durationEstimate: string;
   transcript: string[];
   darkMode?: boolean;
+  compact?: boolean;
 }
 
 export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
@@ -18,30 +19,21 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
   durationEstimate,
   transcript,
   darkMode = false,
+  compact = false,
 }) => {
-
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeLineIndex, setActiveLineIndex] = useState(0);
   const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
   const [isSimulatedPlayback, setIsSimulatedPlayback] = useState(false);
+
   const voiceControllerRef = useRef<{ stop: () => void } | null>(null);
   const transcriptTimerRef = useRef<number | null>(null);
+  const isMountedRef = useRef(true);
 
-  // Clear timers on unmount
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
-      if (voiceControllerRef.current) {
-        voiceControllerRef.current.stop();
-      }
-      if (transcriptTimerRef.current) {
-        window.clearInterval(transcriptTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleTogglePlay = () => {
-    if (isPlaying) {
-      // Stop current playback
+      isMountedRef.current = false;
       if (voiceControllerRef.current) {
         voiceControllerRef.current.stop();
         voiceControllerRef.current = null;
@@ -50,6 +42,23 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
         window.clearInterval(transcriptTimerRef.current);
         transcriptTimerRef.current = null;
       }
+    };
+  }, []);
+
+  const clearTimer = () => {
+    if (transcriptTimerRef.current) {
+      window.clearInterval(transcriptTimerRef.current);
+      transcriptTimerRef.current = null;
+    }
+  };
+
+  const handleTogglePlay = () => {
+    if (isPlaying) {
+      if (voiceControllerRef.current) {
+        voiceControllerRef.current.stop();
+        voiceControllerRef.current = null;
+      }
+      clearTimer();
       setIsPlaying(false);
       setIsSimulatedPlayback(false);
       return;
@@ -59,28 +68,28 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
     setIsPlaying(true);
     setActiveLineIndex(0);
     setNoticeMessage(null);
+    setIsSimulatedPlayback(false);
 
-    // Try playing real audio file
     const controller = sound.playVoiceNote(
       audioUrl,
       () => {
+        if (!isMountedRef.current) return;
         setIsPlaying(false);
-        if (transcriptTimerRef.current) {
-          window.clearInterval(transcriptTimerRef.current);
-          transcriptTimerRef.current = null;
-        }
+        setIsSimulatedPlayback(false);
+        clearTimer();
       },
       (errorMsg) => {
-        // Audio file not present yet, show warm friendly note and run simulated karaoke playback!
+        if (!isMountedRef.current) return;
         setNoticeMessage(errorMsg);
         setIsSimulatedPlayback(true);
 
-        // Advance subtitles line by line (every 4 seconds)
+        // Nếu chưa có file ghi âm: chạy phụ đề như một bản đọc nhẹ nhàng.
+        clearTimer();
         let line = 0;
         transcriptTimerRef.current = window.setInterval(() => {
           line++;
           if (line >= transcript.length) {
-            if (transcriptTimerRef.current) clearInterval(transcriptTimerRef.current);
+            clearTimer();
             setIsPlaying(false);
             setIsSimulatedPlayback(false);
           } else {
@@ -93,6 +102,8 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
     voiceControllerRef.current = controller;
   };
 
+  const showTranscript = !compact || isPlaying;
+
   return (
     <section className="relative w-full max-w-xl mx-auto px-4 py-8">
       <div
@@ -102,7 +113,6 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
             : 'bg-white/90 backdrop-blur-md border-pink-200/90 shadow-xl'
         }`}
       >
-        {/* Header Badge */}
         <div
           className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-bold text-xs mb-3 shadow-xs ${
             darkMode
@@ -122,18 +132,16 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
           {title}
         </h3>
         <p className={`text-xs mb-5 ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-          Thời lượng ước tính: {durationEstimate} • Nhạc nền sẽ tự giảm khi phát
+          {durationEstimate} • Nhạc nền tự nhỏ xuống khi phát
         </p>
 
-
-        {/* Big tactile play/stop button */}
         <button
           type="button"
           onClick={handleTogglePlay}
-          className={`px-7 py-3.5 rounded-2xl font-bold text-sm sm:text-base flex items-center gap-2.5 shadow-lg transition-all duration-200 cursor-pointer ${
+          className={`min-h-[48px] px-7 py-3.5 rounded-2xl font-bold text-sm sm:text-base flex items-center gap-2.5 shadow-lg transition-all duration-200 cursor-pointer touch-manipulation ${
             isPlaying
               ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-rose-300'
-              : 'bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:scale-105 active:scale-95 shadow-pink-400/40 animate-pulse'
+              : 'bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:scale-105 active:scale-95 shadow-pink-400/40'
           }`}
         >
           {isPlaying ? (
@@ -149,7 +157,6 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
           )}
         </button>
 
-        {/* Animated Sound Wave visualizer */}
         <div
           aria-hidden="true"
           className="flex items-center justify-center gap-1.5 h-12 my-5 select-none"
@@ -174,59 +181,70 @@ export const VoiceNotePlayer: React.FC<VoiceNotePlayerProps> = ({
           })}
         </div>
 
-        {/* Friendly notification if mp3 is not uploaded yet */}
         {noticeMessage && (
-          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-800 flex items-start gap-2 text-left">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div
+            className={`mb-4 p-3 rounded-2xl text-xs flex items-start gap-2 text-left ${
+              darkMode
+                ? 'bg-amber-400/10 border border-amber-400/30 text-amber-200'
+                : 'bg-amber-50 border border-amber-200 text-amber-800'
+            }`}
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold">Đang phát chế độ đọc phụ đề mẫu:</p>
+              <p className="font-semibold">
+                {isSimulatedPlayback ? 'Đang đọc phụ đề thay cho bản ghi âm:' : 'Lưu ý:'}
+              </p>
               <p className="text-[11px] opacity-90">{noticeMessage}</p>
             </div>
           </div>
         )}
 
-        {/* Transcript / Subtitles container */}
-        <div
-          className={`w-full border rounded-2xl p-4 text-left shadow-inner transition-colors duration-500 ${
-            darkMode
-              ? 'bg-slate-950/70 border-slate-800 text-slate-200'
-              : 'bg-pink-50/70 border-pink-100 text-gray-700'
-          }`}
-        >
+        {showTranscript ? (
           <div
-            className={`flex items-center justify-between text-[11px] font-bold mb-2 ${
-              darkMode ? 'text-slate-400' : 'text-gray-500'
+            className={`w-full border rounded-2xl p-4 text-left shadow-inner transition-colors duration-500 ${
+              darkMode
+                ? 'bg-slate-950/70 border-slate-800 text-slate-200'
+                : 'bg-pink-50/70 border-pink-100 text-gray-700'
             }`}
           >
-            <span>Phụ Đề Lời Chúc:</span>
-            {isPlaying && (
-              <span className="text-rose-400 flex items-center gap-1 animate-pulse">
-                <Volume2 className="w-3.5 h-3.5" /> Đang phát
-              </span>
-            )}
-          </div>
+            <div
+              className={`flex items-center justify-between text-[11px] font-bold mb-2 ${
+                darkMode ? 'text-slate-400' : 'text-gray-500'
+              }`}
+            >
+              <span>Phụ Đề Lời Chúc:</span>
+              {isPlaying && (
+                <span className="text-rose-400 flex items-center gap-1 animate-pulse">
+                  <Volume2 className="w-3.5 h-3.5" /> Đang phát
+                </span>
+              )}
+            </div>
 
-          <div className="space-y-2 text-xs sm:text-sm leading-relaxed">
-            {transcript.map((line, idx) => (
-              <p
-                key={idx}
-                className={`p-1.5 rounded-lg transition-all ${
-                  isPlaying && activeLineIndex === idx
-                    ? darkMode
-                      ? 'bg-amber-400/20 text-amber-200 font-bold scale-[1.01] border border-amber-400/30'
-                      : 'bg-rose-200/80 text-rose-900 font-bold scale-[1.01]'
-                    : darkMode
-                    ? 'text-slate-300'
-                    : 'text-gray-600'
-                }`}
-              >
-                &ldquo;{line}&rdquo;
-              </p>
-            ))}
+            <div className="space-y-2 text-xs sm:text-sm leading-relaxed">
+              {transcript.map((line, idx) => (
+                <p
+                  key={idx}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    isPlaying && activeLineIndex === idx
+                      ? darkMode
+                        ? 'bg-amber-400/20 text-amber-200 font-bold scale-[1.01] border border-amber-400/30'
+                        : 'bg-rose-200/80 text-rose-900 font-bold scale-[1.01]'
+                      : darkMode
+                      ? 'text-slate-300'
+                      : 'text-gray-600'
+                  }`}
+                >
+                  &ldquo;{line}&rdquo;
+                </p>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <p className={`text-xs italic ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+            Bấm để nghe lời chúc của cả nhà nha 🎧
+          </p>
+        )}
       </div>
-
 
       <style>{`
         @keyframes soundwave {
