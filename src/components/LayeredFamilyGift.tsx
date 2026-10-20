@@ -175,10 +175,10 @@ export const LayeredFamilyGift: React.FC<LayeredFamilyGiftProps> = ({
                     🎖️ <strong>Mẹ ({recipientName}):</strong> Xinh đẹp, đảm đang, quyền lực nhất nhà.
                   </p>
                   <p>
-                    🎖️ <strong>Con ({thirdPersonName}):</strong> Con gái nuôi đáng yêu, chuyên gia hòa giải.
+                    🎖️ <strong>Con ({thirdPersonName}):</strong> Con gái nuôi... Hết
                   </p>
                   <p>
-                    🎖️ <strong>Ba ({gifterName}):</strong> Tài xế kiêm bảo vệ, lo quà và lo rửa chén.
+                    🎖️ <strong>Ba ({gifterName}):</strong> Tài xế kiêm bảo vệ, lo quà và lo rửa chén (nếu có).
                   </p>
                   <p className="pt-2 font-bold text-amber-300 text-center border-t border-slate-700">
                     🎫 {FAMILY_CLOSING.voucher}

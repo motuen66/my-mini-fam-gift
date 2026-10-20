@@ -61,7 +61,7 @@ export const PhotoStory: React.FC<PhotoStoryProps> = ({ moments, recipientName }
 
                 <div className="relative w-full max-w-lg bg-white rounded-3xl p-3 sm:p-4 shadow-xl border border-pink-100/80">
                   <div
-                    className={`relative w-full aspect-[4/3] sm:aspect-[16/10] rounded-2xl overflow-hidden bg-gradient-to-br ${moment.bgGradient} flex items-center justify-center border border-black/5 shadow-inner`}
+                    className={`relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-br ${moment.bgGradient} flex items-center justify-center border border-black/5 shadow-inner`}
                   >
                     {!isImageMissing ? (
                       <img

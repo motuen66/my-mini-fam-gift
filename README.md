@@ -2,6 +2,7 @@
 
 Trang quà tặng 20/10 tương tác, tối ưu cho điện thoại:
 
+- **Bước đầu:** hỏi ai đang mở web. `em Tròn` xem cả 2 tab; `Hoành con` chỉ xem tab Gia đình nhỏ.
 - **Tab 1 — Dành cho em Tròn:** hộp quà chạy trốn (né 10 lần), Photo Story 6 khung ảnh hiện dần khi cuộn, vòng quay may mắn có troll, 20 thẻ thông điệp vui vẻ + lá thư cuối, voice note.
 - **Tab 2 — Gia đình nhỏ:** 3 cây nến (Ba vàng, Mẹ xanh, Con hồng), thắp nến sáng cả trang, confetti 3 màu, voice note gia đình, hộp quà 5 lớp.
 - Sticker WebP cắt sẵn từ 2 sheet AI, có fallback SVG khi thiếu file.
@@ -28,10 +29,9 @@ Gần như mọi câu chữ nằm trong **`src/content/config.ts`**:
 | --- | --- |
 | Tên 3 người | `DEFAULT_CONFIG.names` |
 | Lời chúc voice | `voiceNoteBoyfriend`, `voiceNoteFamily` |
-| Caption 6 ảnh | `PHOTO_MOMENTS` |
-| Câu chân thành cuối Photo Story | `PHOTO_STORY_FINAL_LINE` |
+| Danh sách 6 ảnh Photo Story (chỉ ảnh, không caption) | `PHOTO_MOMENTS` |
 | 8 giải vòng quay | `INITIAL_WHEEL_PRIZES` |
-| 20 lý do | `INITIAL_REASONS` |
+| 20 thông điệp vui vẻ & may mắn | `INITIAL_REASONS` |
 | Lá thư cuối | `LOVE_LETTER` |
 | 3 cây nến | `INITIAL_CANDLES` |
 | Hộp quà 5 lớp | `INITIAL_GIFT_LAYERS` |
@@ -50,7 +50,7 @@ Không có file nào cũng không sao:
 
 - Ảnh thiếu → khung polaroid + sticker.
 - Nhạc thiếu → nhạc tổng hợp nhẹ.
-- Voice thiếu → phụ đề tự chạy.
+- Voice thiếu → hiện thông báo thân thiện, không có phụ đề giả.
 
 ## Build & deploy
 
@@ -60,24 +60,29 @@ npm.cmd run build
 
 Thư mục `dist/` là toàn bộ website.
 
-### Cách nhanh nhất: Netlify Drop
+### GitHub Pages (link cố định)
+
+Project đã đặt `base: './'` nên chạy được ở thư mục con. Đưa nội dung `dist/` lên nhánh `gh-pages` và bật Pages cho nhánh đó.
+
+Link dạng: `https://<username>.github.io/<repo>/`
+
+### Netlify Drop (nhanh, nhưng cần claim)
 
 1. Mở <https://app.netlify.com/drop>.
 2. Kéo thả **thư mục `dist`** (không kéo `src`).
 3. Nhận link dạng `https://ten-ngau-nhien.netlify.app`.
-4. Gửi link qua Zalo/Messenger.
-
-### GitHub Pages (nếu thích)
-
-Project đã đặt `base: './'` nên chạy được ở thư mục con. Đưa nội dung `dist/` lên nhánh `gh-pages` là được.
+4. **Claim site trong vòng 1 giờ** (đăng nhập Netlify), nếu không site sẽ tự hết hạn.
+5. Gửi link qua Zalo/Messenger.
 
 ## Kiểm tra trước khi gửi
 
 - [ ] Mở link trên **iPhone thật**, cả Safari và bong bóng chat Zalo/Messenger.
 - [ ] Bật âm lượng, tắt công tắc im lặng (silent switch) — iPhone sẽ chặn tiếng nếu bật im lặng.
-- [ ] Bấm "Chạm để bắt đầu" một lần để trình duyệt cho phép phát audio.
-- [ ] Thử cả 2 tab, thắp đủ 3 nến, quay vòng quay, lật đủ 20 thẻ.
+- [ ] Chọn đúng người ở màn hình đầu (thao tác này mở khóa audio trên iPhone).
+- [ ] `em Tròn` thấy cả 2 tab; `Hoành con` chỉ thấy tab Gia đình nhỏ.
+- [ ] Thắp đủ 3 nến, quay vòng quay, lật đủ 20 thẻ.
 - [ ] Kiểm tra không bị cuộn ngang, nút bấm dễ chạm.
+- [ ] Mở lại / reload trang: màn hình hỏi `Ai đang mở quà đây?` phải luôn hiện lại, không tự vào thẳng.
 - [ ] Nếu có ảnh/audio thật: build lại và deploy lại đúng thư mục `dist`.
 
 ## Lệnh hữu ích

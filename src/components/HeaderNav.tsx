@@ -7,6 +7,8 @@ interface HeaderNavProps {
   recipientName: string;
   isMuted: boolean;
   onToggleMute: () => void;
+  /** Hoành con chỉ thấy tab Gia đình nhỏ. */
+  showBoyfriendTab?: boolean;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -15,6 +17,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   recipientName,
   isMuted,
   onToggleMute,
+  showBoyfriendTab = true,
 }) => {
   const isDark = activeTab === 'family';
 
@@ -34,21 +37,23 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
               : 'bg-pink-100/70 border-pink-200/60'
           }`}
         >
-          <button
-            type="button"
-            onClick={() => onTabChange('boyfriend')}
-            className={`min-h-[44px] px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'boyfriend'
-                ? 'bg-white text-pink-600 shadow-sm shadow-pink-200/50 scale-[1.02]'
-                : isDark
-                ? 'text-slate-400 hover:text-pink-300 hover:bg-slate-800/60'
-                : 'text-gray-600 hover:text-pink-500 hover:bg-white/40'
-            }`}
-          >
-            <span>💖</span>
-            <span className="sm:hidden">{recipientName}</span>
-            <span className="hidden sm:inline">Dành cho {recipientName}</span>
-          </button>
+          {showBoyfriendTab && (
+            <button
+              type="button"
+              onClick={() => onTabChange('boyfriend')}
+              className={`min-h-[44px] px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer flex items-center gap-1.5 ${
+                activeTab === 'boyfriend'
+                  ? 'bg-white text-pink-600 shadow-sm shadow-pink-200/50 scale-[1.02]'
+                  : isDark
+                  ? 'text-slate-400 hover:text-pink-300 hover:bg-slate-800/60'
+                  : 'text-gray-600 hover:text-pink-500 hover:bg-white/40'
+              }`}
+            >
+              <span>💖</span>
+              <span className="sm:hidden">{recipientName}</span>
+              <span className="hidden sm:inline">Dành cho {recipientName}</span>
+            </button>
+          )}
 
           <button
             type="button"

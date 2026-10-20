@@ -39,24 +39,16 @@ export const DEFAULT_CONFIG: AppConfig = {
   voiceNoteBoyfriend: {
     // iPhone ghi âm ra .m4a. Nếu bạn có .mp3, chỉ cần đổi đuôi ở đây.
     audioUrl: '/audio/voice-boyfriend.m4a',
-    durationEstimate: '0:45',
+    durationEstimate: '0:08',
     transcript: [
       'Alo em Tròn nghe rõ không đó?',
-      'Hôm nay 20/10, anh chúc em luôn vui, luôn khỏe và cười nhiều hơn nhăn mặt nha.',
-      'Cảm ơn em vì những ngày bình thường đã vui hơn, và vì đã chịu đựng mấy trò ngố của anh.',
-      'Anh không giỏi nói mấy câu dài dòng, nên gói gọn: anh thương em rất nhiều.',
-      'Chúc mừng ngày của em nha ❤️',
     ],
   },
   voiceNoteFamily: {
     audioUrl: '/audio/voice-family.m4a',
-    durationEstimate: '0:40',
+    durationEstimate: '0:15',
     transcript: [
       'Loa loa loa! Gia đình 3 người xin thông báo!',
-      'Hôm nay là ngày của mẹ Tròn và con gái nuôi Hoành con.',
-      'Chúc hai người luôn vui vẻ, xinh đẹp và gặp nhiều điều may.',
-      'Còn ba Mỏ xin nhận phần lo quà, phần rửa chén và phần bị hai người trêu.',
-      'Yêu thương cả nhà! 💛💙💗',
     ],
   },
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import {
   DEFAULT_CONFIG,
   PHOTO_MOMENTS,
@@ -8,7 +9,7 @@ import {
   INITIAL_GIFT_LAYERS,
   TAB_INVITE,
 } from './content/config.ts';
-import { OpeningScreen } from './components/OpeningScreen.tsx';
+import { WelcomeGate, type Viewer } from './components/WelcomeGate.tsx';
 import { HeaderNav } from './components/HeaderNav.tsx';
 import { FloatingParticles } from './components/FloatingParticles.tsx';
 import { FamilyGlow } from './components/FamilyGlow.tsx';
@@ -25,28 +26,17 @@ import { Heart } from 'lucide-react';
 type Tab = 'boyfriend' | 'family';
 
 export default function App() {
-  const [hasStarted, setHasStarted] = useState<boolean>(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('autostart') === '1';
-  });
-
-  const [activeTab, setActiveTab] = useState<Tab>(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('tab') === 'family' ? 'family' : 'boyfriend';
-  });
+  // Luôn hỏi lại mỗi lần mở/reload, không lưu lựa chọn.
+  const [viewer, setViewer] = useState<Viewer | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>('boyfriend');
   const [isMuted, setIsMuted] = useState(false);
   const [familyLitCount, setFamilyLitCount] = useState(0);
 
   const names = DEFAULT_CONFIG.names;
-  const isDarkTab = activeTab === 'family';
+  // Hoành con chỉ được xem tab Gia đình nhỏ.
+  const currentTab: Tab = viewer === 'hoanh' ? 'family' : activeTab;
+  const isDarkTab = currentTab === 'family';
   const familyAllLit = familyLitCount >= 3;
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('autostart') === '1') {
-      sound.startBGM();
-    }
-  }, []);
 
   // Đổi màu body để không bị viền kem khi ở tab tối / khi overscroll.
   useEffect(() => {
@@ -58,13 +48,47 @@ export default function App() {
     document.documentElement.style.colorScheme = isDarkTab ? 'dark' : 'light';
   }, [isDarkTab, familyAllLit]);
 
+  // Quay lại bằng back/forward cache cũng phải hỏi lại.
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setViewer(null);
+        setActiveTab('boyfriend');
+        setFamilyLitCount(0);
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   const handleToggleMute = () => {
     const nextState = !isMuted;
     setIsMuted(nextState);
     sound.setMuted(nextState);
   };
 
+  const handleSelectViewer = (choice: Viewer) => {
+    sound.playPop();
+    sound.playFanfare();
+    sound.startBGM();
+
+    confetti({
+      particleCount: 70,
+      spread: 80,
+      origin: { y: 0.7 },
+      colors:
+        choice === 'hoanh'
+          ? ['#60a5fa', '#818cf8', '#f472b6', '#fde047']
+          : ['#ff85a2', '#f43f5e', '#fde047', '#a855f7'],
+    });
+
+    setViewer(choice);
+    setActiveTab(choice === 'hoanh' ? 'family' : 'boyfriend');
+    window.scrollTo({ top: 0 });
+  };
+
   const handleTabChange = (tab: Tab) => {
+    if (viewer === 'hoanh' && tab === 'boyfriend') return;
     sound.playPop();
     if (tab !== 'family') setFamilyLitCount(0);
     setActiveTab(tab);
@@ -86,26 +110,29 @@ export default function App() {
       {/* Hoa rơi ở tab 1, đom đóm ở tab 2 */}
       <FloatingParticles darkMode={isDarkTab} />
 
-      {/* Màn hình mở đầu */}
-      {!hasStarted && (
-        <OpeningScreen
+      {/* Bước rẽ nhánh: ai đang mở web? */}
+      {!viewer && (
+        <WelcomeGate
           gifter={names.gifter}
           recipient={names.recipient}
           thirdPerson={names.thirdPerson}
-          onStart={() => setHasStarted(true)}
+          onSelect={handleSelectViewer}
         />
       )}
 
-      <HeaderNav
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        recipientName={names.recipient}
-        isMuted={isMuted}
-        onToggleMute={handleToggleMute}
-      />
+      {viewer && (
+        <>
+          <HeaderNav
+            activeTab={currentTab}
+            onTabChange={handleTabChange}
+            recipientName={names.recipient}
+            isMuted={isMuted}
+            onToggleMute={handleToggleMute}
+            showBoyfriendTab={viewer !== 'hoanh'}
+          />
 
       <main className="relative z-10 max-w-4xl mx-auto px-3 sm:px-6 py-6 space-y-12">
-        {activeTab === 'boyfriend' ? (
+        {currentTab === 'boyfriend' ? (
           /* TAB 1: DÀNH CHO EM TRÒN */
           <div className="space-y-16 animate-fade-in">
             <RunawayGiftBox
@@ -189,7 +216,9 @@ export default function App() {
         <p className={`text-[11px] ${isDarkTab ? 'text-slate-500' : 'text-gray-400'}`}>
           Chúc mừng Ngày Phụ Nữ Việt Nam 20/10 • Mãi mãi vui vẻ và hạnh phúc nhé!
         </p>
-      </footer>
+        </footer>
+        </>
+      )}
     </div>
   );
 }
