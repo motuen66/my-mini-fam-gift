@@ -2,7 +2,7 @@
 
 Trang quà tặng 20/10 tương tác, tối ưu cho điện thoại:
 
-- **Tab 1 — Dành cho em Tròn:** hộp quà chạy trốn, Photo Story 6 khung, vòng quay may mắn có troll, 20 thẻ lý do + lá thư cuối, voice note.
+- **Tab 1 — Dành cho em Tròn:** hộp quà chạy trốn (né 10 lần), Photo Story 6 khung ảnh hiện dần khi cuộn, vòng quay may mắn có troll, 20 thẻ thông điệp vui vẻ + lá thư cuối, voice note.
 - **Tab 2 — Gia đình nhỏ:** 3 cây nến (Ba vàng, Mẹ xanh, Con hồng), thắp nến sáng cả trang, confetti 3 màu, voice note gia đình, hộp quà 5 lớp.
 - Sticker WebP cắt sẵn từ 2 sheet AI, có fallback SVG khi thiếu file.
 - Không cần server/backend. Chỉ là file tĩnh sau khi build.

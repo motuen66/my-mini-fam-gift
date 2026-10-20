@@ -16,6 +16,9 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    /* Chỉ chặn tràn ngang ở html. Nếu đặt overflow-x: hidden ở cả html lẫn body
+       thì trên mobile trình duyệt sẽ khoá luôn cuộn dọc. */
+    overflow-x: hidden;
   }
 
   html,
@@ -25,7 +28,6 @@
     font-family: var(--font-sans);
     background-color: #fffaf0;
     color: #4a3e3d;
-    overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
   }
 

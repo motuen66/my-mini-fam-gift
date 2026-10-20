@@ -15,7 +15,7 @@ interface VoiceSession {
 }
 
 const FRIENDLY_VOICE_ERROR =
-  'Chưa có bản ghi âm, đang phát lời chúc bằng phụ đề nha 🎧';
+  'Bản ghi âm đang được cập nhật, nghe tạm nhạc nền nha 🎧';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;

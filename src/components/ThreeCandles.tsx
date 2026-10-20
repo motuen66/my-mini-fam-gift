@@ -312,9 +312,7 @@ export const ThreeCandles: React.FC<ThreeCandlesProps> = ({
           senderLabel="🎧 Loa phát thanh gia đình nhỏ"
           audioUrl={DEFAULT_CONFIG.voiceNoteFamily.audioUrl}
           durationEstimate={DEFAULT_CONFIG.voiceNoteFamily.durationEstimate}
-          transcript={DEFAULT_CONFIG.voiceNoteFamily.transcript}
           darkMode
-          compact
         />
       </div>
 

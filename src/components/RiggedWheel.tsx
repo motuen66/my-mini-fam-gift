@@ -225,70 +225,71 @@ export const RiggedWheel: React.FC<RiggedWheelProps> = ({
           <span>{isSpinning ? 'Đang quay tít thò lò...' : 'QUAY NGAY 🎯'}</span>
         </button>
 
+        {/* Prize Dialog: hiện ngay trên vòng quay, chỉ làm mờ khu vực vòng quay */}
+        {winningPrize && (
+          <div className="absolute inset-0 z-30 rounded-3xl bg-white/70 backdrop-blur-md flex items-center justify-center p-2 animate-fade-in">
+            <div className="relative max-w-sm w-full max-h-full overflow-y-auto bg-white rounded-2xl p-4 sm:p-5 text-center shadow-2xl border-2 border-pink-300 animate-scale-up">
+              <button
+                type="button"
+                onClick={() => setWinningPrize(null)}
+                aria-label="Đóng"
+                className="absolute top-1 right-1 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex justify-center mb-2">
+                <InteractiveSticker
+                  character="me"
+                  expression={winningPrize.isTroll ? 'kho-chiu' : 'tha-tim'}
+                  size="sm"
+                  speechBubble={winningPrize.isTroll ? 'Khó chịu quá đi! Trượt rồi 💢' : 'Trúng quà xịn rồi! 🎉'}
+                />
+              </div>
+
+              <span className="text-[11px] font-bold uppercase tracking-wider text-rose-500 bg-rose-50 px-3 py-1 rounded-full">
+                {winningPrize.isTroll ? 'Troll Một Chút Thôi 😜' : `Chúc Mừng ${recipientName}! 🎉`}
+              </span>
+
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 mt-2 mb-1.5 leading-snug">
+                {winningPrize.fullTitle}
+              </h3>
+
+              <p className="text-[11px] sm:text-xs text-gray-600 mb-4 bg-pink-50/60 p-2.5 rounded-xl border border-pink-100 leading-relaxed">
+                {winningPrize.description}
+              </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setWinningPrize(null);
+                  if (winningPrize.isTroll) {
+                    setTimeout(() => handleSpin(), 200);
+                  }
+                }}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
+              >
+                {winningPrize.isTroll ? 'Quay lại lần nữa nha! 🔄' : 'Nhận giải & Chụp màn hình 📸'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Cheering Mascot Sticker */}
-        <div className="hidden sm:block absolute -left-8 bottom-6">
-          <InteractiveSticker
-            character="me"
-            expression="doian"
-            size="sm"
-            tilt={-10}
-            speechBubble="Cầu trúng đồ ăn! 🍕"
-            floatAnimation
-          />
-        </div>
+        {!winningPrize && (
+          <div className="hidden sm:block absolute -left-8 bottom-6">
+            <InteractiveSticker
+              character="me"
+              expression="doian"
+              size="sm"
+              tilt={-10}
+              speechBubble="Cầu trúng đồ ăn! 🍕"
+              floatAnimation
+            />
+          </div>
+        )}
       </div>
 
-
-      {/* Prize Dialog / Modal */}
-      {winningPrize && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
-          <div className="relative max-w-sm w-full bg-white rounded-3xl p-6 text-center shadow-2xl border-2 border-pink-300 animate-scale-up">
-            <button
-              type="button"
-              onClick={() => setWinningPrize(null)}
-              aria-label="Đóng"
-              className="absolute top-2 right-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex justify-center mb-3">
-              <InteractiveSticker
-                character="me"
-                expression={winningPrize.isTroll ? 'kho-chiu' : 'tha-tim'}
-                size="md"
-                speechBubble={winningPrize.isTroll ? 'Khó chịu quá đi! Trượt rồi 💢' : 'Trúng quà xịn rồi! 🎉'}
-              />
-            </div>
-
-            <span className="text-xs font-bold uppercase tracking-wider text-rose-500 bg-rose-50 px-3 py-1 rounded-full">
-              {winningPrize.isTroll ? 'Troll Một Chút Thôi 😜' : `Chúc Mừng ${recipientName}! 🎉`}
-            </span>
-
-
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mt-3 mb-2 leading-snug">
-              {winningPrize.fullTitle}
-            </h3>
-
-            <p className="text-xs sm:text-sm text-gray-600 mb-6 bg-pink-50/60 p-3 rounded-2xl border border-pink-100">
-              {winningPrize.description}
-            </p>
-
-            <button
-              type="button"
-              onClick={() => {
-                setWinningPrize(null);
-                if (winningPrize.isTroll) {
-                  setTimeout(() => handleSpin(), 200);
-                }
-              }}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
-            >
-              {winningPrize.isTroll ? 'Quay lại lần nữa nha! 🔄' : 'Nhận giải & Chụp màn hình 📸'}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Won Prizes Voucher Shelf */}
       {wonPrizes.length > 0 && (

@@ -23,9 +23,8 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
   const [isOpened, setIsOpened] = useState(false);
   const [isLidFlying, setIsLidFlying] = useState(false);
   const buttonAreaRef = useRef<HTMLDivElement>(null);
-  const lastEvadeAtRef = useRef(0);
 
-  const handleEvade = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleEvade = (e: React.SyntheticEvent) => {
     if (isOpened) return;
     if (attempts >= MAX_ESCAPE_ATTEMPTS - 1) {
       // Don't evade on the final attempt
@@ -33,8 +32,6 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
     }
 
     e.preventDefault();
-    // Chặn luôn cú click/tap vừa sinh ra từ lần né này, tránh mở quà oan.
-    lastEvadeAtRef.current = Date.now();
     sound.playEvade();
 
     // Chỉ né trong vùng chứa nút, để nút không bị cắt mất.
@@ -50,7 +47,6 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
 
   const handleOpenGift = () => {
     if (isOpened) return;
-    if (Date.now() - lastEvadeAtRef.current < 500) return;
 
     sound.playPop();
     sound.playFanfare();
@@ -103,10 +99,10 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
         {!isOpened ? (
           <div className="flex flex-col items-center">
             {/* Gift Box Graphic */}
-            <div className="relative mb-6">
+            <div className="relative mb-6 flex flex-col items-center">
               {/* Lid */}
               <div
-                className={`w-36 h-10 bg-rose-500 rounded-t-xl border-b-4 border-rose-600 shadow-md flex items-center justify-center transition-all duration-700 ${
+                className={`w-36 h-10 bg-rose-500 rounded-t-xl border-b-4 border-rose-600 shadow-md flex items-center justify-center transition-all duration-700 z-10 ${
                   isLidFlying ? '-translate-y-24 rotate-12 opacity-0' : ''
                 }`}
               >
@@ -115,9 +111,9 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
                 </div>
               </div>
               {/* Box Base */}
-              <div className="w-32 h-24 bg-gradient-to-b from-rose-400 to-rose-500 rounded-b-xl shadow-lg relative flex items-center justify-center">
-                <div className="w-6 h-full bg-amber-300/80 absolute" />
-                <div className="w-full h-6 bg-amber-300/80 absolute" />
+              <div className="w-32 h-24 -mt-1 bg-gradient-to-b from-rose-400 to-rose-500 rounded-b-xl shadow-lg relative flex items-center justify-center">
+                <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-6 bg-amber-300/80" />
+                <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-6 bg-amber-300/80" />
                 <Gift className="w-10 h-10 text-white/90 z-10" />
               </div>
             </div>
@@ -127,10 +123,28 @@ export const RunawayGiftBox: React.FC<RunawayGiftBoxProps> = ({
               <button
                 type="button"
                 onPointerEnter={(e) => {
-                  if (e.pointerType === 'mouse') handleEvade(e);
+                  if (e.pointerType === 'mouse' && attempts < MAX_ESCAPE_ATTEMPTS - 1) {
+                    handleEvade(e);
+                  }
                 }}
-                onTouchStart={handleEvade}
-                onClick={handleOpenGift}
+                onPointerDown={(e) => {
+                  if (isOpened) return;
+                  if (attempts >= MAX_ESCAPE_ATTEMPTS - 1) {
+                    handleOpenGift();
+                  } else {
+                    handleEvade(e);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (attempts >= MAX_ESCAPE_ATTEMPTS - 1) {
+                      handleOpenGift();
+                    } else {
+                      handleEvade(e);
+                    }
+                  }
+                }}
                 style={{
                   transform: `translate(${btnOffset.x}px, ${btnOffset.y}px)`,
                   transition: attempts < MAX_ESCAPE_ATTEMPTS - 1 ? 'transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'transform 0.3s ease',

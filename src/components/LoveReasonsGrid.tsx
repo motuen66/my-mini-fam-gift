@@ -10,13 +10,11 @@ import { Heart, MailOpen } from 'lucide-react';
 interface LoveReasonsGridProps {
   reasons: LoveReason[];
   recipientName: string;
-  gifterName: string;
 }
 
 export const LoveReasonsGrid: React.FC<LoveReasonsGridProps> = ({
   reasons,
   recipientName,
-  gifterName,
 }) => {
   const [openedCardIds, setOpenedCardIds] = useState<number[]>([]);
 
@@ -58,10 +56,10 @@ export const LoveReasonsGrid: React.FC<LoveReasonsGridProps> = ({
           <span>20 Thẻ Bài Bí Mật</span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
-          20 Điều Khiến {gifterName} Thương <span className="text-rose-500">{recipientName}</span> Nhất
+          20 Thông Điệp Vui Vẻ &amp; May Mắn Cho <span className="text-rose-500">{recipientName}</span>
         </h2>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">
-          Chạm từng thẻ để lật mở. Mở đủ 20 thẻ để mở khóa bức thư cuối! 💌
+           Chạm từng thẻ để lật mở. Mở đủ 20 thẻ để mở khóa bức thư cuối! 💌
         </p>
       </div>
 
@@ -96,7 +94,7 @@ export const LoveReasonsGrid: React.FC<LoveReasonsGridProps> = ({
               }}
               role="button"
               tabIndex={0}
-              aria-label={`Lật thẻ lý do số ${item.id}`}
+              aria-label={`Lật thẻ thông điệp số ${item.id}`}
               className="h-44 sm:h-48 cursor-pointer perspective-1000 select-none group outline-none focus-visible:ring-2 focus-visible:ring-rose-400 rounded-2xl"
             >
               <div
@@ -119,7 +117,7 @@ export const LoveReasonsGrid: React.FC<LoveReasonsGridProps> = ({
                     </span>
                   </div>
 
-                  <span className="text-[10px] text-white/70 italic">Lý do số {item.id}</span>
+                  <span className="text-[10px] text-white/70 italic">Thông điệp số {item.id}</span>
                 </div>
 
                 <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl p-3.5 flex flex-col justify-between bg-white border-2 border-rose-200 text-gray-800 shadow-lg">
@@ -155,7 +153,7 @@ export const LoveReasonsGrid: React.FC<LoveReasonsGridProps> = ({
           <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">{LOVE_LETTER.title}</h3>
 
           <p className="text-xs sm:text-sm font-semibold text-rose-500 mb-3">
-            &ldquo;Tròn vui quá nè! Thương a Mỏ lắm!&rdquo; 🥰
+            &ldquo;Mở thư rồi nè! Chúc em thật nhiều niềm vui!&rdquo; 🥰
           </p>
 
           <div className="flex justify-center gap-8 mb-4">

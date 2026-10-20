@@ -127,7 +127,6 @@ export default function App() {
             <LoveReasonsGrid
               reasons={INITIAL_REASONS}
               recipientName={names.recipient}
-              gifterName={names.gifter}
             />
 
             <VoiceNotePlayer
@@ -135,7 +134,6 @@ export default function App() {
               senderLabel={`🎧 Giọng đọc độc quyền của ${names.gifter}`}
               audioUrl={DEFAULT_CONFIG.voiceNoteBoyfriend.audioUrl}
               durationEstimate={DEFAULT_CONFIG.voiceNoteBoyfriend.durationEstimate}
-              transcript={DEFAULT_CONFIG.voiceNoteBoyfriend.transcript}
             />
 
             <div className="text-center pt-2">

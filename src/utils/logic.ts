@@ -5,10 +5,17 @@ export const ESCAPE_DIALOGUES = [
   'Né đòn cấp độ Thách Đấu! Bắt được anh đi!',
   'Chưa mở được đâu nè lé le 😜',
   'Ui da suýt bấm trúng! Nhanh tay hơn nữa xem nào!',
+  'Trượt rồi nha, hộp quà nhanh chân lắm đó!',
+  'Có ba đầu sáu tay cũng không bắt được đâu 😆',
+  'Né nè né nè, ai bảo tham quà!',
+  'Bấm hụt hoài, tội nghiệp chưa 😝',
+  'Suýt nữa thì trúng, tiếc ghê!',
+  'Hộp quà xin hàng một phút, thử lại đi!',
   'Thôi thương em lắm rồi, đứng yên nè, mở đi nha! 🎁',
 ];
 
-export const MAX_ESCAPE_ATTEMPTS = 5;
+/** Số lần hộp quà né trước khi chịu đứng yên cho mở (10 lần né). */
+export const MAX_ESCAPE_ATTEMPTS = 11;
 
 /**
  * Calculates the next evasive position for the runaway gift button.
